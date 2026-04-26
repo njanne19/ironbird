@@ -1,11 +1,17 @@
 import { Routes, Route } from 'react-router-dom';
-import { SplashScreen } from './routes/SplashScreen';
+import { SplashScreen } from '@/routes/SplashScreen';
+import { Titlebar } from '@/components/ui/titlebar';
 
 function App() {
     return (
-        <Routes>
-            <Route path="/" element={<SplashScreen/>} />
-        </Routes>
+        <>
+            <Titlebar />
+            <main className="mt-8">
+                <Routes>
+                    <Route path="/" element={<SplashScreen/>} />
+                </Routes>
+            </main>
+        </>
     );
 }
 
