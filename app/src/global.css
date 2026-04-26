@@ -1,0 +1,22 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "@xyflow/react/dist/style.css";
+
+:root {
+  --bg: #f6f6f6;
+  --fg: #0f0f0f;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #2f2f2f;
+    --fg: #f6f6f6;
+  }
+}
+
+html,
+body {
+  min-height: 100%;
+  background-color: var(--bg);
+  color: var(--fg);
+}
