@@ -1,0 +1,41 @@
+{
+  "schema_version": "0.1",
+  "project_name": "Pendulum Demo",
+  "components": [
+    {
+      "id": "pendulum",
+      "component_type": "pendulum",
+      "ports": {
+        "outputs": ["state"],
+        "inputs": ["torque"]
+      },
+      "config": {
+        "length_m": 1.0,
+        "mass_kg": 0.5,
+        "damping": 0.01,
+        "gravity": 9.81
+      },
+      "initial": {
+        "angle_rad": 3.14159,
+        "angular_velocity_rad_s": 0.0
+      }
+    },
+    {
+      "id": "swing_controller",
+      "component_type": "pd_controller",
+      "ports": {
+        "outputs": ["torque"],
+        "inputs": ["state"]
+      },
+      "config": {
+        "kp": 10.0,
+        "kd": 2.0,
+        "target_angle_rad": 0.0
+      }
+    }
+  ],
+  "wiring": [
+    { "from": "pendulum", "from_port": "state", "to": "swing_controller", "to_port": "state" },
+    { "from": "swing_controller", "from_port": "torque", "to": "pendulum", "to_port": "torque" }
+  ]
+}
