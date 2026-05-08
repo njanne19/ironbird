@@ -1,4 +1,6 @@
-use ironbird_core::schema::{IronbirdProject, parse_ibd_project};
+mod schema;
+
+use schema::{IronbirdProject, parse_ibd_project};
 use tauri::{Manager, AppHandle};
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
