@@ -4,3 +4,4 @@ pub mod message;
 pub mod port;
 pub mod component;
 pub mod sim_context;
+pub mod types;

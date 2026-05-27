@@ -1,4 +1,3 @@
-use uuid::Uuid;
 use std::string::ToString;
 use std::marker::PhantomData; 
 
@@ -11,14 +10,7 @@ pub struct InputPort<T: Send + 'static> {
 }
 
 impl<T: Send + 'static> InputPort<T> {
-    pub fn new() -> Self {
-        Self {
-            id: Uuid::new_v4().to_string(),
-            _input_type: PhantomData,
-        }
-    }
-
-    pub fn with_name(name: &str) -> Self {
+    pub fn new(name: &str) -> Self {
         Self {
             id: name.to_string(),
             _input_type: PhantomData,
@@ -39,14 +31,7 @@ pub struct OutputPort<T: Send + 'static> {
 }
 
 impl<T: Send + 'static> OutputPort<T> {
-    pub fn new() -> Self {
-        Self {
-            id: Uuid::new_v4().to_string(),
-            _output_type: PhantomData,
-        }
-    }
-
-    pub fn with_name(name: &str) -> Self {
+    pub fn new(name: &str) -> Self {
         Self {
             id: name.to_string(),
             _output_type: PhantomData,

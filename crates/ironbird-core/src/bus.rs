@@ -1,4 +1,4 @@
-use crate::message::OpaqueBusMessage;
+use crate::message::{OpaqueBusMessage, Signal};
 use crate::channel::BusMessageChannel;
 
 use std::collections::HashMap;
@@ -16,7 +16,11 @@ pub struct Bus {
 }
 
 impl Bus {
-    fn add_new_channel<T: Send + 'static>(&mut self, channel_id: String, ) -> Result<()> {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn add_new_channel<T: Signal>(&mut self, channel_id: String, ) -> Result<()> {
         if self.channels.contains_key(&channel_id) {
             return Err(anyhow!("Cannot add channel w/ID {} onto the bus \
                     because a channel with that ID already exists!", channel_id));
@@ -26,7 +30,7 @@ impl Bus {
         Ok(())
     }
 
-    fn write_latest_to_channel(&mut self, channel_id: &str, data: OpaqueBusMessage) -> Result<()> {
+    pub fn write_latest_to_channel(&mut self, channel_id: &str, data: OpaqueBusMessage) -> Result<()> {
         match self.channels.get_mut(channel_id) {
             Some(channel) => {
                 let _write_ok = channel.write(data)?;
@@ -39,7 +43,7 @@ impl Bus {
         }
     }
 
-    fn read_current_from_channel(&self, channel_id: &str) -> Result<Option<&OpaqueBusMessage>> {
+    pub fn read_current_from_channel(&self, channel_id: &str) -> Result<Option<&OpaqueBusMessage>> {
         match self.channels.get(channel_id) {
             Some(channel) => {
                 Ok(channel.read())
@@ -51,7 +55,7 @@ impl Bus {
         }
     }
 
-    fn read_prev_from_channel(&self, channel_id: &str) -> Result<Option<&OpaqueBusMessage>> {
+    pub fn read_prev_from_channel(&self, channel_id: &str) -> Result<Option<&OpaqueBusMessage>> {
         match self.channels.get(channel_id) {
             Some(channel) => {
                 Ok(channel.read_prev())
@@ -68,18 +72,21 @@ impl Bus {
 mod tests {
     use super::*;
     use crate::message::BusMessage;
+    use chrono::{DateTime, Utc, NaiveTime, TimeDelta};
 
-    fn make_opaque<T: Send + 'static>(nanos: u64, inner: T) -> OpaqueBusMessage {
-        BusMessage { nanos, inner }.into()
+    fn make_opaque<T: Signal>(wall_time: DateTime<Utc>, sim_time: chrono::NaiveTime, inner: T) -> OpaqueBusMessage {
+        BusMessage { wall_time, sim_time, inner }.into()
     }
 
     #[test]
     fn add_channel_write_and_read() {
         let mut bus = Bus::default();
+        let now = Utc::now();
+        let start_of_sim = NaiveTime::from_hms_opt(0, 0,0).unwrap();
         bus.add_new_channel::<u32>("ch".to_string()).unwrap();
-        bus.write_latest_to_channel("ch", make_opaque(1, 42u32)).unwrap();
+        bus.write_latest_to_channel("ch", make_opaque(now, start_of_sim, 42u32)).unwrap();
         let msg = bus.read_current_from_channel("ch").unwrap().unwrap();
-        assert_eq!(msg.nanos, 1);
+        assert_eq!(msg.wall_time, now);
     }
 
     #[test]
@@ -92,7 +99,9 @@ mod tests {
     #[test]
     fn write_to_nonexistent_channel_errors() {
         let mut bus = Bus::default();
-        assert!(bus.write_latest_to_channel("nope", make_opaque(0, 0u32)).is_err());
+        let now = Utc::now();
+        let start_of_sim = NaiveTime::from_hms_opt(0, 0,0).unwrap();
+        assert!(bus.write_latest_to_channel("nope", make_opaque(now, start_of_sim, 0u32)).is_err());
     }
 
     #[test]
@@ -114,9 +123,11 @@ mod tests {
     fn read_prev_returns_previous_write() {
         let mut bus = Bus::default();
         bus.add_new_channel::<u32>("ch".to_string()).unwrap();
-        bus.write_latest_to_channel("ch", make_opaque(10, 1u32)).unwrap();
-        bus.write_latest_to_channel("ch", make_opaque(20, 2u32)).unwrap();
+        let now = Utc::now();
+        let start_of_sim = NaiveTime::from_hms_opt(0, 0,0).unwrap();
+        bus.write_latest_to_channel("ch", make_opaque(now, start_of_sim, 1u32)).unwrap();
+        bus.write_latest_to_channel("ch", make_opaque(now + TimeDelta::nanoseconds(3), start_of_sim + TimeDelta::seconds(3), 2u32)).unwrap();
         let prev = bus.read_prev_from_channel("ch").unwrap().unwrap();
-        assert_eq!(prev.nanos, 10);
+        assert_eq!(prev.wall_time, now);
     }
 }
