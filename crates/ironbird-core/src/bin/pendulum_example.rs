@@ -23,5 +23,13 @@ pub fn main() {
         0.0,
     );
 
+    // Maybe I want to do...
+    controller.connect(&controller.input, &pendulum.output);
+    
+    // Which is equivalent to...
+    pendulum.connect(&pendulum.output, &controller.input);
+
+    // But then I'd also want
+    pendulum.connect(&pendulum.pivot_torque_in, &controller.output);
 
 }

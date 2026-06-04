@@ -21,10 +21,10 @@ impl<T, const N: usize, Frame> StateVec<T, N, Frame> {
     }
 }
 impl Signal for StateVec<f64, 2, World> {
-    const STABLE_TYPE_NAME: &'static str = "irongbird/StateVec<f64,2,World>";
+    const STABLE_TYPE_NAME: &'static str = "ironbird/StateVec<f64,2,World>";
 }
 impl Signal for StateVec<f64, 4, World> {
-    const STABLE_TYPE_NAME: &'static str = "irongbird/StateVec<f64,4,World>";
+    const STABLE_TYPE_NAME: &'static str = "ironbird/StateVec<f64,4,World>";
 }
 
 

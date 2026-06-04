@@ -1,7 +1,7 @@
 use crate::message::{BusMessage, OpaqueBusMessage, Signal};
 use crate::port::{InputPort, OutputPort};
 use crate::bus::Bus;
-use crate::component::Component;
+use crate::component::{Component, ComponentSpec};
 use std::collections::{HashMap};
 use anyhow::{Result};
 use chrono::{DateTime, Utc, NaiveTime, TimeDelta};
@@ -62,13 +62,13 @@ impl<'a> StepContext<'a> {
     // if it is not connected to anything -- in such a case, 
     // it will return None.
     pub fn read<T: Signal>(&self, port: &InputPort<T>) -> Option<&T> {
-        match self.inputs.get(port.get_id()) {
+        match self.inputs.get(port.get_name()) {
             Some(msg) => {
                 match msg.inner.downcast_ref::<T>() {
                     Some(val) => Some(val),
                     None => {
                         tracing::warn!(
-                            port_id = %port.get_id(),
+                            port_id = %port.get_name(),
                             expected_spec = %T::message_spec(),
                             actual_spec = %msg.message_spec,
                             "Downcast failed on StepContxt read - type mismatch"
@@ -90,10 +90,20 @@ impl<'a> StepContext<'a> {
             inner: value 
         };
         let boxed: OpaqueBusMessage = wrapped.into();
-        let _ = self.outputs.insert(port.get_id().to_string(), boxed);
+        let _ = self.outputs.insert(port.get_name().to_string(), boxed);
     }
 }
 
+
+/// A containerized + globally unique instance of a component.
+/// Carries a unique ID to distinguish it from others. 
+/// Uses its component spec to define its structure 
+/// after concrete types have been erased (because of Box dyn)
+struct ComponentNode {
+    id: String,
+    spec: ComponentSpec,
+    component_impl: Box<dyn Component>,
+}
 
 /// Monolithic controller of simulation. Owns internal + external message
 /// passing, as well as notion of global time. Calls update loops 
@@ -107,7 +117,7 @@ impl<'a> StepContext<'a> {
 pub struct SimContext {
     global_nanos: u64,
     bus: Bus,
-    components: Vec<Box<dyn Component>>,
+    components: HashMap<String, ComponentNode>,
 }
 
 impl SimContext {
@@ -115,7 +125,16 @@ impl SimContext {
         Self {
             global_nanos: 0,
             bus: Bus::new(), 
-            components: Vec::new(),            
+            components: HashMap::new(),            
+        }
+    }
+
+    pub fn add_component(&mut self, component_id: String, component_impl: Box<dyn Component>) -> Result<()> {
+        match self.components.entry(component_id) {
+            Ok(e) => {
+
+            },
+            None
         }
     }
 

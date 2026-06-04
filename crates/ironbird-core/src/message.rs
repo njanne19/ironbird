@@ -10,7 +10,7 @@ use std::fmt;
 /// an internally referencable 
 /// and an externally (stable)
 /// referencable type
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct MessageSpec {
     pub internal_type_id: TypeId,
     pub internal_type_name: &'static str,
